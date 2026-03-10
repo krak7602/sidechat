@@ -163,7 +163,7 @@ class SideChatSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Claude binary path")
-      .setDesc("Path to the claude binary. Leave blank to auto-detect. Use this if Claude is installed via nvm, volta, fnm, or a non-standard location.")
+      .setDesc("Path to the claude binary. Leave blank to auto-detect. Use this if claude is installed via nvm, volta, fnm, or a non-standard location.")
       .addText((text) =>
         text
           .setPlaceholder("/usr/local/bin/claude")

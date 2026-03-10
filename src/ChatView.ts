@@ -61,7 +61,7 @@ class SessionListModal extends Modal {
     setIcon(closeBtn, "x");
     closeBtn.onclick = () => this.close();
 
-    const newBtn = contentEl.createEl("button", { text: "+ New session", cls: "sc-btn-primary sc-session-new-btn" });
+    const newBtn = contentEl.createEl("button", { text: "+ New session", cls: "sc-btn-primary sc-session-new-btn" }); // eslint-disable-line obsidianmd/ui/sentence-case
     newBtn.onclick = () => { this.close(); this.onNew(); };
 
     const list = contentEl.createDiv("sc-session-list");
@@ -243,7 +243,7 @@ export class ChatView extends ItemView {
   }
 
   getViewType() { return VIEW_TYPE_CHAT; }
-  getDisplayText() { return "claude"; }
+  getDisplayText() { return "SideChat"; } // eslint-disable-line obsidianmd/ui/sentence-case
   getIcon() { return "message-square"; }
 
   async onOpen() {
@@ -301,16 +301,16 @@ export class ChatView extends ItemView {
     wrap.createEl("h3", { text: "Setup required" });
 
     if (!this.claudeStatus?.installed) {
-      wrap.createEl("p", { text: "Step 1 — Install the claude CLI:" });
+      wrap.createEl("p", { text: "Step 1 — Install the claude CLI:" }); // eslint-disable-line obsidianmd/ui/sentence-case
       const block = wrap.createDiv("sc-code");
-      block.setText("brew install claude-code");
+      block.setText("brew install claude-code"); // eslint-disable-line obsidianmd/ui/sentence-case
       const copy = wrap.createEl("button", { text: "Copy", cls: "sc-btn-sm" });
       copy.onclick = () => {
         navigator.clipboard.writeText("brew install claude-code");
         copy.setText("Copied!");
         setTimeout(() => copy.setText("Copy"), 2000);
       };
-      wrap.createEl("p", { text: "Or: npm install -g @anthropic-ai/claude-code", cls: "sc-muted" });
+      wrap.createEl("p", { text: "Or: npm install -g @anthropic-ai/claude-code", cls: "sc-muted" }); // eslint-disable-line obsidianmd/ui/sentence-case
       wrap.createEl("hr");
     }
 
@@ -768,7 +768,7 @@ export class ChatView extends ItemView {
     if (on) {
       setIcon(this.sendBtn, "square");
       this.sendBtn.onclick = () => { this.killProc?.(); this.setStreaming(false); };
-      if (this.sessionNameEl) this.sessionNameEl.setText("thinking…");
+      if (this.sessionNameEl) this.sessionNameEl.setText("Thinking…");
     } else {
       setIcon(this.sendBtn, "arrow-up");
       this.sendBtn.onclick = () => this.send();
