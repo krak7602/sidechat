@@ -1,0 +1,686 @@
+/* ── Layout ─────────────────────────────────────────── */
+
+/* Strip Obsidian's default view-content padding from our leaf */
+.workspace-leaf-content[data-type="sidechat-chat"] .view-content {
+  padding: 0;
+}
+
+.sc-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  padding: 0;
+  font-size: var(--font-text-size);
+}
+
+/* Hide Obsidian status bar when chat is open — our footer takes its place */
+body.sc-chat-open .status-bar {
+  display: none !important;
+}
+
+/* Remove focus rings globally within the plugin and its modals */
+.sc-view *:focus,
+.sc-view *:focus-visible,
+.modal .sc-session-modal *:focus,
+.modal .sc-session-modal *:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.sc-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* ── Messages ───────────────────────────────────────── */
+
+.sc-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scroll-behavior: smooth;
+}
+
+.sc-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 88%;
+}
+
+/* ── Footer contents ─────────────────────────────────── */
+
+.sc-footer-name {
+  cursor: pointer;
+  transition: color 0.1s;
+}
+
+.sc-footer-name:hover {
+  color: var(--text-muted);
+}
+
+.sc-footer-sep {
+  opacity: 0.5;
+  padding: 0 5px;
+}
+
+.sc-footer-new-session {
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: var(--text-faint);
+  font-size: inherit;
+  font-family: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  transition: color 0.1s;
+}
+
+.sc-footer-new-session:hover {
+  color: var(--text-muted);
+}
+
+/* ── Session modal ───────────────────────────────────── */
+
+.sc-session-modal-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.sc-session-modal-header h3 {
+  flex: 1;
+  margin: 0;
+}
+
+.sc-session-modal-close {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.1s, color 0.1s;
+}
+
+.sc-session-modal-close svg {
+  width: 14px;
+  height: 14px;
+}
+
+.sc-session-modal-close:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.sc-session-new-btn {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.sc-session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.sc-session-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  gap: 8px;
+  transition: background 0.1s;
+}
+
+.sc-session-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.sc-session-active {
+  background: var(--background-modifier-hover);
+  font-weight: 500;
+}
+
+.sc-session-info {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.sc-session-name {
+  font-size: 12px;
+  color: var(--text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.sc-session-sep {
+  font-size: 11px;
+  color: var(--text-faint);
+  flex-shrink: 0;
+  padding: 0 3px;
+}
+
+.sc-session-date {
+  font-size: 11px;
+  color: var(--text-faint);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.sc-session-del {
+  background: none !important;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 0;
+  border-radius: 4px;
+  font-size: 11px;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.sc-session-item:hover .sc-session-del {
+  opacity: 1;
+}
+
+.sc-session-del:hover {
+  color: var(--text-error) !important;
+  background: none !important;
+}
+
+/* ────────────────────────────────────────────────────── */
+
+.sc-msg-user {
+  align-self: flex-end;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-radius: 14px 14px 3px 14px;
+  padding: 8px 12px;
+}
+
+.sc-msg-assistant {
+  align-self: flex-start;
+}
+
+/* Let Obsidian's markdown renderer style the content normally */
+.sc-msg-assistant .sc-msg-text {
+  color: var(--text-normal);
+}
+
+/* Streaming cursor */
+.sc-streaming::after {
+  content: "▋";
+  opacity: 0.6;
+  animation: sc-blink 0.9s step-end infinite;
+}
+
+@keyframes sc-blink {
+  50% { opacity: 0; }
+}
+
+/* Tool-use label */
+.sc-tool-label {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-style: italic;
+  padding-left: 2px;
+  margin-bottom: 2px;
+}
+
+/* ── Pills (in messages) ────────────────────────────── */
+
+.sc-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 5px;
+}
+
+.sc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  cursor: default;
+}
+
+/* ── Input area ─────────────────────────────────────── */
+
+.sc-input-area {
+  flex-shrink: 0;
+  border-top: 1px solid var(--background-modifier-border);
+  padding: 8px;
+  background: var(--background-primary);
+}
+
+.sc-attachments-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding-bottom: 6px;
+}
+
+.sc-pill-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  background: var(--background-modifier-border);
+  color: var(--text-muted);
+}
+
+.sc-pill-rm {
+  cursor: pointer;
+  opacity: 0.55;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0 2px;
+  transition: opacity 0.15s;
+}
+
+.sc-pill-rm:hover {
+  opacity: 1;
+}
+
+.sc-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.sc-input {
+  flex: 1;
+  resize: none;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: var(--font-text-size);
+  font-family: var(--font-interface);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  min-height: 36px;
+  max-height: 160px;
+  overflow-y: auto;
+  line-height: 1.45;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+
+.sc-send-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+  padding: 0;
+  transition: opacity 0.15s;
+}
+
+.sc-send-btn:hover:not(:disabled) {
+  opacity: 0.82;
+}
+
+.sc-send-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Empty state ────────────────────────────────────── */
+
+.sc-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--text-muted);
+  padding: 24px 16px;
+  gap: 6px;
+  pointer-events: none;
+}
+
+/* ── Setup screen ───────────────────────────────────── */
+
+.sc-setup {
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sc-setup h3 {
+  margin: 0 0 8px;
+}
+
+.sc-code {
+  font-family: var(--font-monospace);
+  font-size: 13px;
+  background: var(--background-secondary);
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin: 4px 0;
+  word-break: break-all;
+  color: var(--text-normal);
+}
+
+.sc-btn-primary {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 7px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: opacity 0.15s;
+}
+
+.sc-btn-primary:hover:not(:disabled) {
+  opacity: 0.82;
+}
+
+.sc-btn-sm {
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: opacity 0.15s;
+}
+
+.sc-btn-sm:hover {
+  opacity: 0.8;
+}
+
+.sc-mt {
+  margin-top: 8px;
+}
+
+.sc-muted {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* ── Permission request bar ──────────────────────────── */
+
+.sc-permission-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--background-modifier-hover);
+  flex-wrap: wrap;
+}
+
+.sc-permission-label {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 0;
+}
+
+.sc-permission-approve {
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: none;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sc-permission-reject {
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+  background: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sc-permission-reject:hover {
+  background: var(--background-modifier-hover);
+}
+
+.sc-permission-view {
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+  background: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sc-permission-view:hover {
+  background: var(--background-modifier-hover);
+}
+
+/* ── Permission preview modal ────────────────────────── */
+
+.sc-preview-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.sc-preview-nav-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--background-modifier-border);
+  background: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.1s, color 0.1s;
+}
+
+.sc-preview-nav-btn:hover:not(:disabled) {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.sc-preview-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.sc-preview-nav-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.sc-preview-nav-info {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sc-preview-nav-name {
+  font-size: 12px;
+  font-family: var(--font-monospace);
+  color: var(--text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sc-preview-nav-count {
+  font-size: 11px;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.sc-preview-tabs {
+  display: flex;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.sc-preview-tab {
+  padding: 5px 14px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--text-faint);
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.sc-preview-tab:hover {
+  color: var(--text-muted);
+}
+
+.sc-preview-tab-active {
+  color: var(--text-normal);
+  font-weight: 500;
+  border-bottom-color: var(--interactive-accent);
+}
+
+.sc-preview-body {
+  /* contains the pre.sc-preview-code */
+}
+
+.sc-preview-code {
+  margin: 0;
+  padding: 10px;
+  border-radius: 5px;
+  background: var(--background-modifier-hover);
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+/* ── Footer bar ─────────────────────────────────────── */
+
+.sc-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  height: calc(var(--status-bar-height, 26px) - 1px);
+  border-top: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  font-size: 11px;
+  color: var(--text-faint);
+  user-select: none;
+}
+
+/* ── Sync status mirror ──────────────────────────────── */
+
+.sc-footer-sync {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.sc-footer-sync .status-bar-item {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+.sc-footer-sync svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── @ mention dropdown ─────────────────────────────── */
+
+.sc-mention-dropdown {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+  overflow: hidden;
+  margin-bottom: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.sc-mention-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.1s;
+}
+
+.sc-mention-item:hover,
+.sc-mention-active {
+  background: var(--background-modifier-hover);
+}
+
+.sc-mention-icon {
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.sc-mention-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-normal);
+}
