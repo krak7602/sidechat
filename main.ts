@@ -27,7 +27,11 @@ export default class SideChatPlugin extends Plugin {
   activeSessionIndex = 0;
   binaryPath = "";
 
-  async onload() {
+  onload() {
+    void this.init();
+  }
+
+  private async init() {
     const data: PluginData = Object.assign({}, DEFAULT_DATA, await this.loadData());
     this.sessions = data.sessions ?? [];
     this.activeSessionIndex = data.activeSessionIndex ?? 0;
@@ -39,35 +43,34 @@ export default class SideChatPlugin extends Plugin {
     }
 
     this.registerView(VIEW_TYPE_CHAT, (leaf) => new ChatView(leaf, this));
-    this.addRibbonIcon("message-square", "Open Claude", () => this.activateView());
+    this.addRibbonIcon("message-square", "Open claude", () => void this.activateView());
     this.addSettingTab(new SideChatSettingTab(this.app, this));
 
     this.addCommand({
       id: "open-chat",
-      name: "Open Claude chat",
-      callback: () => this.activateView(),
+      name: "Open claude chat",
+      callback: () => void this.activateView(),
     });
 
     this.addCommand({
       id: "attach-current-file",
-      name: "Add current file to Claude",
+      name: "Add current file to claude",
       editorCallback: (editor, ctx) => {
         const file = ctx.file;
         if (!file) return;
-        this.getOrOpenChat().then((view) => view?.addFile(file.path));
+        void this.getOrOpenChat().then((view) => view?.addFile(file.path));
       },
     });
 
     this.addCommand({
       id: "attach-selection",
-      name: "Add selection to Claude",
-      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "c" }],
+      name: "Add selection to claude",
       editorCallback: (editor, ctx) => {
         const file = ctx.file;
         if (!file || !editor.somethingSelected()) return;
         const from = editor.getCursor("from");
         const to = editor.getCursor("to");
-        this.getOrOpenChat().then((view) =>
+        void this.getOrOpenChat().then((view) =>
           view?.addSelection(file.path, editor.getSelection(), from.line + 1, to.line + 1)
         );
       },
@@ -75,14 +78,13 @@ export default class SideChatPlugin extends Plugin {
 
     this.addCommand({
       id: "attach-file-picker",
-      name: "Attach a file to Claude",
-      callback: () => this.getOrOpenChat().then((view) => view?.openFilePicker()),
+      name: "Attach a file to claude",
+      callback: () => void this.getOrOpenChat().then((view) => view?.openFilePicker()),
     });
   }
 
-  async onunload() {
-    await this.savePluginData();
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE_CHAT);
+  onunload() {
+    void this.savePluginData();
   }
 
   // ── Session helpers ───────────────────────────────────────────────────────
@@ -140,7 +142,7 @@ export default class SideChatPlugin extends Plugin {
       await leaf.setViewState({ type: VIEW_TYPE_CHAT, active: true });
     }
 
-    workspace.revealLeaf(leaf);
+    void workspace.revealLeaf(leaf);
     return leaf.view instanceof ChatView ? leaf.view : null;
   }
 }

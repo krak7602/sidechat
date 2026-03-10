@@ -89,7 +89,7 @@ class SessionListModal extends Modal {
         del.onclick = (e) => {
           e.stopPropagation();
           this.plugin.deleteSession(i);
-          this.plugin.savePluginData();
+          void this.plugin.savePluginData();
           this.close();
           this.onSelect(this.plugin.activeSessionIndex);
         };
@@ -243,7 +243,7 @@ export class ChatView extends ItemView {
   }
 
   getViewType() { return VIEW_TYPE_CHAT; }
-  getDisplayText() { return "Claude"; }
+  getDisplayText() { return "claude"; }
   getIcon() { return "message-square"; }
 
   async onOpen() {
@@ -283,7 +283,7 @@ export class ChatView extends ItemView {
     }
   }
 
-  async onClose() {
+  onClose() {
     this.killProc?.();
     document.body.removeClass("sc-chat-open");
     this.syncObserver?.disconnect();
@@ -298,10 +298,10 @@ export class ChatView extends ItemView {
     const el = this.contentEl;
     el.empty();
     const wrap = el.createDiv("sc-setup");
-    wrap.createEl("h3", { text: "Claude Code required" });
+    wrap.createEl("h3", { text: "Setup required" });
 
     if (!this.claudeStatus?.installed) {
-      wrap.createEl("p", { text: "Step 1 — Install Claude Code CLI:" });
+      wrap.createEl("p", { text: "Step 1 — Install the claude CLI:" });
       const block = wrap.createDiv("sc-code");
       block.setText("brew install claude-code");
       const copy = wrap.createEl("button", { text: "Copy", cls: "sc-btn-sm" });
@@ -314,7 +314,7 @@ export class ChatView extends ItemView {
       wrap.createEl("hr");
     }
 
-    wrap.createEl("p", { text: "Sign in with your Claude.ai account:" });
+    wrap.createEl("p", { text: "Sign in with your claude.ai account:" });
     const loginBtn = wrap.createEl("button", { text: "Sign in", cls: "sc-btn-primary" });
     loginBtn.onclick = () => {
       if (this.claudeStatus?.binaryPath) {
@@ -322,23 +322,25 @@ export class ChatView extends ItemView {
         loginBtn.setText("Browser opened — sign in, then click below");
         loginBtn.disabled = true;
       } else {
-        new Notice("Install Claude Code first.");
+        new Notice("Install claude first.");
       }
     };
 
     const checkBtn = wrap.createEl("button", { text: "Check again", cls: "sc-btn-sm sc-mt" });
-    checkBtn.onclick = async () => {
-      this.claudeStatus = await checkClaudeStatus(this.plugin.binaryPath);
-      if (this.claudeStatus.installed && this.claudeStatus.authenticated) {
-        if (this.plugin.sessions.length === 0) this.plugin.createSession();
-        this.loadAndRender();
-      } else {
-        new Notice(
-          !this.claudeStatus.installed
-            ? "Claude Code not found. Install it and try again."
-            : "Not signed in yet. Complete sign-in in the browser."
-        );
-      }
+    checkBtn.onclick = () => {
+      void checkClaudeStatus(this.plugin.binaryPath).then((status) => {
+        this.claudeStatus = status;
+        if (status.installed && status.authenticated) {
+          if (this.plugin.sessions.length === 0) this.plugin.createSession();
+          this.loadAndRender();
+        } else {
+          new Notice(
+            !status.installed
+              ? "Claude Code not found. Install it and try again."
+              : "Not signed in yet. Complete sign-in in the browser."
+          );
+        }
+      });
     };
   }
 
@@ -351,7 +353,7 @@ export class ChatView extends ItemView {
       (index) => {
         this.plugin.setActiveSession(index);
         this.loadAndRender();
-        this.plugin.savePluginData();
+        void this.plugin.savePluginData();
       },
       () => {
         this.switchToSession(this.plugin.createSession(), true);
@@ -361,7 +363,7 @@ export class ChatView extends ItemView {
 
   private switchToSession(session: StoredSession, isNew: boolean) {
     void session; // session index already set in plugin
-    this.plugin.savePluginData();
+    void this.plugin.savePluginData();
     this.loadAndRender();
     if (isNew) this.inputEl?.focus();
   }
@@ -407,7 +409,7 @@ export class ChatView extends ItemView {
 
     this.inputEl = row.createEl("textarea", {
       cls: "sc-input",
-      attr: { placeholder: "Ask Claude…", rows: "1" },
+      attr: { placeholder: "Ask claude…", rows: "1" },
     });
 
     this.inputEl.addEventListener("input", () => {
@@ -442,7 +444,7 @@ export class ChatView extends ItemView {
 
     this.sessionNameEl = this.footerEl.createSpan("sc-footer-name");
     const session = this.plugin.getActiveSession();
-    this.sessionNameEl.setText(session.name === "New session" ? "Claude" : session.name);
+    this.sessionNameEl.setText(session.name === "New session" ? "claude" : session.name);
     this.sessionNameEl.addEventListener("click", () => this.openSessionList());
 
     this.footerEl.createSpan({ text: " · ", cls: "sc-footer-sep" });
@@ -477,7 +479,7 @@ export class ChatView extends ItemView {
 
   private showEmptyState() {
     const el = this.messagesEl.createDiv("sc-empty");
-    el.createEl("p", { text: "Ask Claude anything about your vault." });
+    el.createEl("p", { text: "Ask claude anything about your vault." });
     el.createEl("p", {
       text: "Type @ to attach a file or folder.",
       cls: "sc-muted",
@@ -570,7 +572,7 @@ export class ChatView extends ItemView {
     this.inputEl.selectionStart = this.inputEl.selectionEnd = ctx.start;
     this.closeMentionDropdown();
     if (item.kind === "file") this.addFile(item.path);
-    else this.addDirectory(item.path);
+    else void this.addDirectory(item.path);
     this.inputEl.focus();
   }
 
@@ -582,7 +584,7 @@ export class ChatView extends ItemView {
 
   // ── Send / stream ─────────────────────────────────────────────────────────
 
-  private async send() {
+  private send() {
     const text = this.inputEl.value.trim();
     if (!text || this.isStreaming || !this.claudeStatus) return;
 
@@ -659,7 +661,7 @@ export class ChatView extends ItemView {
           }
 
           session.messages = this.messages.map(messageToPersistedMessage);
-          this.plugin.savePluginData();
+          void this.plugin.savePluginData();
 
           assistantMsg.isStreaming = false;
           toolEl.hide();
@@ -668,7 +670,7 @@ export class ChatView extends ItemView {
 
           textEl.removeClass("sc-streaming");
           textEl.textContent = "";
-          MarkdownRenderer.render(
+          void MarkdownRenderer.render(
             this.app, assistantMsg.text, textEl, "", this as unknown as Component
           );
 
@@ -692,7 +694,7 @@ export class ChatView extends ItemView {
     toolInputs: ToolInput[] = []
   ) {
     const bar = msgEl.createDiv("sc-permission-bar");
-    bar.createSpan({ text: "Claude needs write permission to proceed.", cls: "sc-permission-label" });
+    bar.createSpan({ text: "claude needs write permission to proceed.", cls: "sc-permission-label" });
 
     if (toolInputs.length > 0) {
       const viewBtn = bar.createEl("button", { text: "View", cls: "sc-permission-view" });
@@ -702,22 +704,19 @@ export class ChatView extends ItemView {
     const approveBtn = bar.createEl("button", { text: "Approve", cls: "sc-permission-approve" });
     const rejectBtn = bar.createEl("button", { text: "Reject", cls: "sc-permission-reject" });
 
-    approveBtn.onclick = async () => {
+    approveBtn.onclick = () => {
       bar.remove();
       approveBtn.disabled = true;
-      const results = await this.applyToolInputs(toolInputs);
-
-      // Update the assistant bubble with a summary of what was applied
-      const summary = results.map(r => r.ok ? `✓ ${r.label}` : `✗ ${r.label}: ${r.error}`).join("\n");
-      assistantMsg.text = summary;
-      textEl.textContent = "";
-      MarkdownRenderer.render(this.app, summary, textEl, "", this as unknown as Component);
-
-      // Persist
-      const session = this.plugin.getActiveSession();
-      session.messages = this.messages.map(messageToPersistedMessage);
-      this.plugin.savePluginData();
-      this.scrollBottom();
+      void this.applyToolInputs(toolInputs).then((results) => {
+        const summary = results.map(r => r.ok ? `✓ ${r.label}` : `✗ ${r.label}: ${r.error}`).join("\n");
+        assistantMsg.text = summary;
+        textEl.textContent = "";
+        void MarkdownRenderer.render(this.app, summary, textEl, "", this as unknown as Component);
+        const session = this.plugin.getActiveSession();
+        session.messages = this.messages.map(messageToPersistedMessage);
+        void this.plugin.savePluginData();
+        this.scrollBottom();
+      });
     };
 
     rejectBtn.onclick = () => bar.remove();
@@ -808,7 +807,7 @@ export class ChatView extends ItemView {
     if (msg.isStreaming) {
       textEl.addClass("sc-streaming");
     } else if (msg.text) {
-      MarkdownRenderer.render(this.app, msg.text, textEl, "", this as unknown as Component);
+      void MarkdownRenderer.render(this.app, msg.text, textEl, "", this as unknown as Component);
     }
     this.scrollBottom();
     return { el, textEl, toolEl };
@@ -820,7 +819,7 @@ export class ChatView extends ItemView {
     const file = this.app.vault.getAbstractFileByPath(filePath);
     if (!(file instanceof TFile)) return;
     if (this.pendingAttachments.find((a) => a.path === filePath && a.kind === "file")) return;
-    this.app.vault.read(file).then((content) => {
+    void this.app.vault.read(file).then((content) => {
       this.pendingAttachments.push({ kind: "file", path: filePath, content });
       this.renderAttachmentsBar();
     });
@@ -877,8 +876,8 @@ export class ChatView extends ItemView {
   }
 
   private autoResize() {
-    this.inputEl.style.height = "auto";
-    this.inputEl.style.height = `${Math.min(this.inputEl.scrollHeight, 160)}px`;
+    this.inputEl.setCssProps({ "--sc-input-height": "auto" });
+    this.inputEl.setCssProps({ "--sc-input-height": `${Math.min(this.inputEl.scrollHeight, 160)}px` });
   }
 
   private scrollBottom() {

@@ -4,7 +4,7 @@ import { homedir } from "os";
 import { join } from "path";
 
 const DEBUG = false;
-const dbg = (...args: unknown[]) => { if (DEBUG) console.log(...args); };
+const dbg = (...args: unknown[]) => { if (DEBUG) console.debug(...args); };
 
 export interface ClaudeStatus {
   installed: boolean;
@@ -62,7 +62,7 @@ export async function checkClaudeStatus(binaryPathOverride = ""): Promise<Claude
           "/usr/bin/which",
           ["claude"],
           { env: { PATH: `/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:${process.env.PATH ?? ""}` } },
-          (err, stdout) => (err ? reject(err) : resolve(stdout.trim()))
+          (err, stdout) => (err ? reject(new Error(err.message)) : resolve(stdout.trim()))
         );
       });
     } catch {
